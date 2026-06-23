@@ -1,0 +1,40 @@
+{
+  "$schema": "./tasks-schema.json",
+  "description": "Tasks template for modernization plan. Generate this file alongside plan.md to track individual migration tasks.",
+  "tasks": [
+    {
+      "type": "transform",
+      "id": "001-transform-azure-runtime-configuration",
+      "description": "Adjust the application runtime configuration so it is compatible with Azure-managed hosting behavior and no longer depends on fixed or restricted local-only settings.",
+      "reason": "The assessment findings that still reproduce in the current repository are limited to Azure hosting readiness configuration. The application still defines fixed server port values in runtime configuration files, which should be reviewed and externalized for Azure-managed environments.",
+      "requirements": "Addresses issues: Server port configuration found, Restricted configurations found. Update the runtime configuration so Azure can supply the listening port and so environment-specific settings that conflict with Azure hosting can be externalized or relaxed without breaking existing local development behavior. Keep the current Spring Boot 3.5 / Java 21 / PostgreSQL runtime behavior intact and verify the project still builds and tests successfully after the changes.",
+      "successCriteria": {
+        "passBuild": "true",
+        "generateNewUnitTests": "false",
+        "passUnitTests": "true"
+      }
+    },
+    {
+      "type": "security",
+      "id": "002-security-cve-remediation",
+      "description": "Scan all project dependencies for known CVEs and remediate any identified vulnerabilities to ensure the application is secure before deployment.",
+      "reason": "A security and CVE remediation task is mandatory in every modernization plan, and the original assessment reported multiple dependency vulnerabilities. Even though the repository has already been upgraded, the dependency set should be re-validated before any Azure deployment work proceeds.",
+      "requirements": "Re-scan the current dependency graph, confirm whether any high-severity CVEs remain, and upgrade vulnerable dependencies to the minimum patched version needed to clear the findings. If a fix requires a major version upgrade, document the dependency, the old and new major versions, and the breaking-change risk. Verify that the project builds and all existing tests pass after remediation.",
+      "successCriteria": {
+        "passBuild": "true",
+        "generateNewUnitTests": "false",
+        "passUnitTests": "true"
+      },
+      "dependencies": [
+        "001-transform-azure-runtime-configuration"
+      ]
+    }
+  ],
+  "metadata": {
+    "planName": "modernization-plan-cloud-agent",
+    "projectName": "Photo Album",
+    "language": "java",
+    "createdAt": "2026-06-23T15:33:27Z",
+    "version": "1.0"
+  }
+}
