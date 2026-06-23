@@ -25,7 +25,13 @@
       "type": "transform",
       "id": "002-transform-oracle-to-postgresql",
       "description": "Migrate the database layer from Oracle Database to Azure Database for PostgreSQL, replacing Oracle-specific SQL and JDBC configuration with PostgreSQL equivalents.",
-      "status": "started",
+      "status": "success",
+      "taskSummary": "Migrated DB layer from Oracle to Azure Database for PostgreSQL with passwordless managed-identity auth. pom.xml: removed ojdbc11, added postgresql driver, spring-cloud-azure BOM 5.22.0 and spring-cloud-azure-starter-jdbc-postgresql. Config switched to Azure PostgreSQL JDBC URL (sslmode=require), PostgreSQLDialect, passwordless props. Photo.java column types and PhotoRepository native SQL converted (ROWNUM->LIMIT/OFFSET, NVL->COALESCE). docker-compose and init scripts converted to PostgreSQL. mvn clean test BUILD SUCCESS (1 test, 0 failures); no Oracle references remain.",
+      "successCriteriaStatus": {
+        "passBuild": "true",
+        "generateNewUnitTests": "false",
+        "passUnitTests": "true"
+      },
       "reason": "The assessment identifies an Oracle database dependency with six custom repository queries that use Oracle-specific SQL (ROWNUM, NVL, TO_CHAR, analytic functions) that are not portable. Migrating to Azure Database for PostgreSQL removes proprietary database licensing and enables a managed cloud data service.",
       "requirements": "Addresses issues: Oracle database found, Detects usage of Jakarta Persistence (JPA) APIs. Replace the Oracle JDBC driver (ojdbc8) with the PostgreSQL driver, update the Hibernate dialect and datasource configuration across all profiles, and convert all Oracle-specific native SQL (ROWNUM, NVL, TO_CHAR, analytic functions) to PostgreSQL syntax. Use the project guidance at .github/postgres-migrations/results/application_guidance/coding_notes.md where available. Connect to Azure Database for PostgreSQL using Managed Identity (passwordless) authentication. Ensure the project builds and tests pass.",
       "skills": [
@@ -45,6 +51,7 @@
       "type": "transform",
       "id": "003-transform-credentials-to-keyvault",
       "description": "Remove hard-coded plaintext credentials from configuration files and source code, storing and retrieving secrets from Azure Key Vault.",
+      "status": "started",
       "reason": "The assessment found database passwords hard-coded in application configuration files and source control, a significant security gap. Centralizing secrets in Azure Key Vault removes plaintext credentials from the repository.",
       "requirements": "Addresses issues: Password found in configuration file, CWE-259 Use of Hard-coded Password, CWE-798 Use of Hard-coded Credentials. Migrate hard-coded credentials (database username/password and any other secrets) found in application.properties, application-docker.properties, and test configuration to Azure Key Vault, retrieving them at runtime. Use Managed Identity for Key Vault access. Ensure the project builds and tests pass.",
       "skills": [

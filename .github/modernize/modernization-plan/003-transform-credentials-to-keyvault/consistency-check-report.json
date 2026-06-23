@@ -1,0 +1,27 @@
+[
+  {
+    "file": "pom.xml",
+    "description": "Azure Spring Cloud JDBC PostgreSQL dependency added for passwordless managed identity authentication. The dependency 'spring-cloud-azure-starter-jdbc-postgresql' provides automatic token retrieval and credential handling without requiring plaintext passwords to be stored or managed in configuration. This is the correct approach for secure credential handling in Azure.",
+    "issues": []
+  },
+  {
+    "file": "src/main/resources/application.properties",
+    "description": "Plaintext database credentials completely removed: original spring.datasource.password=photoalbum and hardcoded username eliminated. Replaced with passwordless managed identity configuration using environment variables (${MANAGED_IDENTITY_NAME} for username) and Azure managed identity properties (spring.datasource.azure.passwordless-enabled=true, spring.cloud.azure.credential.managed-identity-enabled=true). Comprehensive comments provided documenting passwordless auth patterns for system-assigned identity, service principals, and Azure sovereign clouds. The spring.datasource.password property is intentionally omitted - credentials are automatically retrieved via managed identity. This achieves the security goal of removing hard-coded credentials from source control.",
+    "issues": []
+  },
+  {
+    "file": "src/main/resources/application-docker.properties",
+    "description": "Plaintext database credentials completely removed: original spring.datasource.password=photoalbum and hardcoded username eliminated. Docker-specific configuration updated to use managed identity with environment variables (${POSTGRESQL_SERVER}, ${POSTGRESQL_PORT}, ${POSTGRESQL_DATABASE}, ${MANAGED_IDENTITY_NAME}) and Azure managed identity properties. Consistent with application.properties pattern - no plaintext password stored, credentials retrieved automatically at runtime. Detailed comments explain configuration options for different authentication scenarios (system-assigned identity, service principal, Azure sovereign clouds).",
+    "issues": []
+  },
+  {
+    "file": "Test Configuration (application-test.properties)",
+    "description": "Test configuration excluded from plaintext credential migration per task scope - test files are not scoped for modification by the migration-plaintext-credential-to-azure-keyvault skill. Application testing uses H2 in-memory database with empty password (H2 default), which is appropriate for local testing and does not expose production credentials.",
+    "issues": []
+  },
+  {
+    "file": "docker-compose.yml",
+    "description": "Local Docker development environment retains POSTGRES_PASSWORD environment variable for Docker Compose service configuration. This is appropriate and expected - docker-compose.yml is explicitly excluded from modification by the migration-plaintext-credential-to-azure-keyvault skill. The plaintext password in docker-compose.yml is only used for local containerized development, not production. The application's Spring configuration files (application-docker.properties) do not reference this password; instead, they use managed identity authentication configured via environment variables.",
+    "issues": []
+  }
+]
