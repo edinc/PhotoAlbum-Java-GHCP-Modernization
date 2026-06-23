@@ -1,0 +1,47 @@
+[
+  {
+    "file": "pom.xml",
+    "description": "Database driver and dependency migration: Removed Oracle JDBC driver (ojdbc8), added PostgreSQL driver, updated Spring Boot 2.7.18 to 3.5.4, Java 8 to 21, and added spring-cloud-azure-starter-jdbc-postgresql for passwordless managed identity authentication to Azure Database for PostgreSQL",
+    "issues": []
+  },
+  {
+    "file": "src/main/java/com/photoalbum/model/Photo.java",
+    "description": "Entity model updates: Jakarta EE import migration (javax.* to jakarta.*) as part of Spring Boot 3.x upgrade, Oracle-specific column definitions converted to PostgreSQL equivalents. Column 'file_size' changed from NUMBER(19,0) to bigint for PostgreSQL. Column 'uploaded_at' default changed from SYSTIMESTAMP to CURRENT_TIMESTAMP with correct PostgreSQL timestamp syntax",
+    "issues": []
+  },
+  {
+    "file": "src/main/java/com/photoalbum/repository/PhotoRepository.java",
+    "description": "SQL query migration from Oracle to PostgreSQL: (1) findAllOrderByUploadedAtDesc - table and column names changed to lowercase (PostgreSQL best practice); (2) findPhotosUploadedBefore - Oracle ROWNUM pagination with nested SELECT replaced with PostgreSQL LIMIT clause; (3) findPhotosUploadedAfter - NVL() replaced with COALESCE() (PostgreSQL standard NULL coalescing function); (4) findPhotosByUploadMonth - TO_CHAR() function retained (valid in both databases, comment updated); (5) findPhotosWithPagination - complex Oracle ROWNUM-based pagination replaced with LIMIT/OFFSET formula: LIMIT (endRow - startRow + 1) OFFSET (startRow - 1) maintains same 1-based row semantics; (6) findPhotosWithStatistics - Window functions RANK() OVER and SUM() OVER retained (both Oracle and PostgreSQL support identical window function syntax)",
+    "issues": []
+  },
+  {
+    "file": "src/main/java/com/photoalbum/service/impl/PhotoServiceImpl.java",
+    "description": "Comments and log messages updated to reflect database migration from Oracle to PostgreSQL. All functional code remains unchanged; only documentation strings were updated for clarity",
+    "issues": []
+  },
+  {
+    "file": "src/main/resources/application.properties",
+    "description": "Database configuration migration: JDBC URL changed from jdbc:oracle:thin to jdbc:postgresql with Azure Database endpoint pattern. Datasource username changed to use managed identity variable. Hibernate dialect changed from OracleDialect to PostgreSQLDialect. Passwordless authentication enabled with spring.datasource.azure.passwordless-enabled=true and managed identity credentials configuration. Comprehensive comments added explaining configuration options for system-assigned identity, service principal, and Azure sovereign cloud deployments",
+    "issues": []
+  },
+  {
+    "file": "src/main/resources/application-docker.properties",
+    "description": "Docker-specific configuration updated: JDBC URL changed from Oracle thin connection to PostgreSQL Azure Database URL with environment variable placeholders. Hibernate dialect updated to PostgreSQLDialect. Passwordless authentication configuration added with the same managed identity pattern as main application.properties",
+    "issues": []
+  },
+  {
+    "file": "postgres-init/01-create-user.sql",
+    "description": "New PostgreSQL initialization script created (renamed from oracle-init/01-create-user.sql). Uses PostgreSQL-specific syntax: DO block with dynamic SQL to conditionally create role photoalbum with password authentication. Includes comments explaining this is for local Docker development only; Azure production uses passwordless managed identity. Proper PostgreSQL permission grants on database and schema",
+    "issues": []
+  },
+  {
+    "file": "Dockerfile",
+    "description": "Docker base image updated from eclipse-temurin-8 to eclipse-temurin-21 to match upgraded Java 21 version (part of task 001 Spring Boot upgrade, not specific to Oracle→PostgreSQL migration)",
+    "issues": []
+  },
+  {
+    "file": "docker-compose.yml",
+    "description": "Docker Compose configuration updated to use PostgreSQL container instead of Oracle. Image switched from Oracle database service to PostgreSQL, environment variables updated for PostgreSQL connection parameters",
+    "issues": []
+  }
+]

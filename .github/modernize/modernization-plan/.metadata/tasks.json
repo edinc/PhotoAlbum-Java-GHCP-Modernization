@@ -1,0 +1,94 @@
+{
+  "$schema": "./tasks-schema.json",
+  "description": "Tasks template for modernization plan. Generate this file alongside plan.md to track individual migration tasks.",
+  "tasks": [
+    {
+      "type": "upgrade",
+      "id": "001-upgrade-springboot-3x",
+      "description": "Upgrade the application runtime from Spring Boot 2.7.18 / Java 8 to Spring Boot 3.x / Java 21, including the Spring Framework 6.x upgrade and the Jakarta EE migration (javax.* to jakarta.*).",
+      "status": "success",
+      "taskSummary": "Upgraded Photo Album from Spring Boot 2.7.18/Java 8 to Spring Boot 3.5.4/Java 21 (Spring Framework 6.x), with full Jakarta EE namespace migration. pom.xml parent 2.7.18->3.5.4, Java 8->21, ojdbc8->ojdbc11; Photo.java javax.persistence/javax.validation -> jakarta.*; Dockerfile temurin-8->temurin-21. mvn clean test passes: Tests run: 1, Failures: 0, Errors: 0.",
+      "successCriteriaStatus": {
+        "passBuild": "true",
+        "generateNewUnitTests": "false",
+        "passUnitTests": "true"
+      },
+      "reason": "The assessment flags the current Spring Boot 2.7.18, Spring Framework 5.x, and Java 8 versions as mandatory end-of-support blockers. A supported, security-patched runtime is required before any Azure service migration, since the Azure SDKs and Spring Cloud Azure starters require Spring Boot 3.x and Java 17+.",
+      "requirements": "Addresses issues: Spring Boot Version Has Reached the End of OSS Support, Spring Framework Version Has Reached the End of OSS Support, Java Version Has Reached the End of Support, Java Version is not the latest LTS, Detects usage of Jakarta Persistence (JPA) APIs. Upgrade the Maven project parent and dependencies to Spring Boot 3.x, migrate all javax.* imports and APIs to jakarta.*, and target Java 21. Ensure the project builds and all existing tests pass after the upgrade.",
+      "successCriteria": {
+        "passBuild": "true",
+        "generateNewUnitTests": "false",
+        "passUnitTests": "true"
+      }
+    },
+    {
+      "type": "transform",
+      "id": "002-transform-oracle-to-postgresql",
+      "description": "Migrate the database layer from Oracle Database to Azure Database for PostgreSQL, replacing Oracle-specific SQL and JDBC configuration with PostgreSQL equivalents.",
+      "status": "started",
+      "reason": "The assessment identifies an Oracle database dependency with six custom repository queries that use Oracle-specific SQL (ROWNUM, NVL, TO_CHAR, analytic functions) that are not portable. Migrating to Azure Database for PostgreSQL removes proprietary database licensing and enables a managed cloud data service.",
+      "requirements": "Addresses issues: Oracle database found, Detects usage of Jakarta Persistence (JPA) APIs. Replace the Oracle JDBC driver (ojdbc8) with the PostgreSQL driver, update the Hibernate dialect and datasource configuration across all profiles, and convert all Oracle-specific native SQL (ROWNUM, NVL, TO_CHAR, analytic functions) to PostgreSQL syntax. Use the project guidance at .github/postgres-migrations/results/application_guidance/coding_notes.md where available. Connect to Azure Database for PostgreSQL using Managed Identity (passwordless) authentication. Ensure the project builds and tests pass.",
+      "skills": [
+        {
+          "name": "migration-oracle-to-postgresql",
+          "location": "builtin"
+        }
+      ],
+      "successCriteria": {
+        "passBuild": "true",
+        "generateNewUnitTests": "false",
+        "passUnitTests": "true"
+      },
+      "dependencies": ["001-upgrade-springboot-3x"]
+    },
+    {
+      "type": "transform",
+      "id": "003-transform-credentials-to-keyvault",
+      "description": "Remove hard-coded plaintext credentials from configuration files and source code, storing and retrieving secrets from Azure Key Vault.",
+      "reason": "The assessment found database passwords hard-coded in application configuration files and source control, a significant security gap. Centralizing secrets in Azure Key Vault removes plaintext credentials from the repository.",
+      "requirements": "Addresses issues: Password found in configuration file, CWE-259 Use of Hard-coded Password, CWE-798 Use of Hard-coded Credentials. Migrate hard-coded credentials (database username/password and any other secrets) found in application.properties, application-docker.properties, and test configuration to Azure Key Vault, retrieving them at runtime. Use Managed Identity for Key Vault access. Ensure the project builds and tests pass.",
+      "skills": [
+        {
+          "name": "migration-plaintext-credential-to-azure-keyvault",
+          "location": "builtin"
+        }
+      ],
+      "successCriteria": {
+        "passBuild": "true",
+        "generateNewUnitTests": "false",
+        "passUnitTests": "true"
+      },
+      "dependencies": ["001-upgrade-springboot-3x"]
+    },
+    {
+      "type": "security",
+      "id": "004-security-cve-remediation",
+      "description": "Scan all project dependencies for known CVEs and remediate any identified vulnerabilities to ensure the application is secure before deployment.",
+      "reason": "The assessment lists 40+ mandatory security vulnerabilities across Apache Tomcat, Spring Framework, Spring Boot, Thymeleaf, logback, snakeyaml, jackson-core, Hibernate, Apache Commons IO, AssertJ, and H2. These must be remediated before the modernized application is considered ready.",
+      "requirements": "Upgrade vulnerable dependencies to the minimum patched version. If a CVE fix requires a major version upgrade, document the affected dependency, the current version, the upgraded major version, and the breaking change risk. Verify that the project builds and all tests pass after remediation.",
+      "successCriteria": {
+        "passBuild": "true",
+        "generateNewUnitTests": "false",
+        "passUnitTests": "true"
+      },
+      "skills": [
+        {
+          "name": "validate-cves-and-fix",
+          "location": "builtin"
+        }
+      ],
+      "dependencies": [
+        "001-upgrade-springboot-3x",
+        "002-transform-oracle-to-postgresql",
+        "003-transform-credentials-to-keyvault"
+      ]
+    }
+  ],
+  "metadata": {
+    "planName": "modernization-plan",
+    "projectName": "Photo Album",
+    "language": "java",
+    "createdAt": "2026-06-23T15:51:29+02:00",
+    "version": "1.0"
+  }
+}
