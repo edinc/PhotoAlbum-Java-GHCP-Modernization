@@ -51,7 +51,13 @@
       "type": "transform",
       "id": "003-transform-credentials-to-keyvault",
       "description": "Remove hard-coded plaintext credentials from configuration files and source code, storing and retrieving secrets from Azure Key Vault.",
-      "status": "started",
+      "status": "success",
+      "taskSummary": "The only in-scope plaintext credential (DB password) was already eliminated by task 002, which moved the datasource to Azure PostgreSQL with passwordless managed-identity auth. No spring.datasource.password remains in application.properties/application-docker.properties; test config uses empty-password H2 (excluded); no hard-coded secrets in Java source; docker-compose local-dev password is excluded by the skill. No remaining runtime secret to store, so no Key Vault SecretClient added (would be dead code). Build succeeded, unit test passed, consistency check clean.",
+      "successCriteriaStatus": {
+        "passBuild": "true",
+        "generateNewUnitTests": "false",
+        "passUnitTests": "true"
+      },
       "reason": "The assessment found database passwords hard-coded in application configuration files and source control, a significant security gap. Centralizing secrets in Azure Key Vault removes plaintext credentials from the repository.",
       "requirements": "Addresses issues: Password found in configuration file, CWE-259 Use of Hard-coded Password, CWE-798 Use of Hard-coded Credentials. Migrate hard-coded credentials (database username/password and any other secrets) found in application.properties, application-docker.properties, and test configuration to Azure Key Vault, retrieving them at runtime. Use Managed Identity for Key Vault access. Ensure the project builds and tests pass.",
       "skills": [
@@ -71,6 +77,14 @@
       "type": "security",
       "id": "004-security-cve-remediation",
       "description": "Scan all project dependencies for known CVEs and remediate any identified vulnerabilities to ensure the application is secure before deployment.",
+      "status": "success",
+      "taskSummary": "Scanned 154 resolved Maven dependencies; initial scan found 66 vulnerabilities across 22 (mostly transitive) artifacts. Remediated via low-risk pom.xml changes: Spring Boot parent BOM 3.5.4->3.5.15 (patches Spring Framework 6.2.19, Tomcat 10.1.55, Netty 4.1.135.Final, Logback 1.5.34, Jackson 2.21.4, Thymeleaf 3.1.5, AssertJ 3.27.7, PostgreSQL 42.7.11); commons-io 2.11.0->2.14.0 (CVE-2024-47554); nimbus-jose-jwt pinned 10.0.2 (CVE-2025-53864). Re-scan: 0 genuine vulnerabilities (2 remaining medium findings are false positives from Netty classifier misparse). No major upgrades needed. mvn clean verify BUILD SUCCESS; tests 1/1 passed.",
+      "cveReport": ".github/modernize/modernization-plan/004-security-cve-remediation/final-cve-report.json",
+      "successCriteriaStatus": {
+        "passBuild": "true",
+        "generateNewUnitTests": "false",
+        "passUnitTests": "true"
+      },
       "reason": "The assessment lists 40+ mandatory security vulnerabilities across Apache Tomcat, Spring Framework, Spring Boot, Thymeleaf, logback, snakeyaml, jackson-core, Hibernate, Apache Commons IO, AssertJ, and H2. These must be remediated before the modernized application is considered ready.",
       "requirements": "Upgrade vulnerable dependencies to the minimum patched version. If a CVE fix requires a major version upgrade, document the affected dependency, the current version, the upgraded major version, and the breaking change risk. Verify that the project builds and all tests pass after remediation.",
       "successCriteria": {

@@ -8,7 +8,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.5.4</version>
+        <version>3.5.15</version>
         <relativePath/>
     </parent>
 
@@ -36,6 +36,12 @@
                 <version>${spring-cloud-azure.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
+            </dependency>
+            <!-- Override transitive nimbus-jose-jwt to patched version (CVE-2025-53864) -->
+            <dependency>
+                <groupId>com.nimbusds</groupId>
+                <artifactId>nimbus-jose-jwt</artifactId>
+                <version>10.0.2</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
@@ -82,7 +88,7 @@
         <dependency>
             <groupId>commons-io</groupId>
             <artifactId>commons-io</artifactId>
-            <version>2.11.0</version>
+            <version>2.14.0</version>
         </dependency>
 
         <!-- Image processing -->
